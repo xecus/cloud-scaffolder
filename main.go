@@ -1,11 +1,14 @@
 package main
 
 import (
-	"os"
-	"fmt"
-	"github.com/urfave/cli"
+	"./api"
 	"./job"
-	"./vagrant"
+	"./vm_provider/vagrant"
+	"fmt"
+	"github.com/joho/godotenv"
+	"github.com/urfave/cli"
+	"log"
+	"os"
 )
 
 func dis() {
@@ -18,13 +21,24 @@ func dis() {
 	d.Wait()
 }
 
-func add(c *cli.Context) {
-
+func scaffold(c *cli.Context) {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 	fmt.Println("added task: ", c.Args().First())
-	cmd := "vagrant"
-	params := []string{"reload", "main", "--provision"}
-	vagrant.CtrlVagrant(cmd, params)
+	// Generate Vagrant File
+	vagrant.PrepareVagrantControl()
+	vagrant.GenerateVagrantFile()
+}
 
+func serve(c *cli.Context) {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	api.Ready()
 }
 
 func main() {
@@ -34,11 +48,20 @@ func main() {
 	app.Version = "1.0.0"
 	app.Commands = []cli.Command{
 		{
-			Name:    "add",
-			Aliases: []string{"a"},
-			Usage:   "add a task to the list",
+			Name:    "scaffold",
+			Aliases: []string{"sc"},
+			Usage:   "scaffold cloud",
 			Action: func(c *cli.Context) error {
-				add(c)
+				scaffold(c)
+				return nil
+			},
+		},
+		{
+			Name:    "serve",
+			Aliases: []string{"sv"},
+			Usage:   "start server",
+			Action: func(c *cli.Context) error {
+				serve(c)
 				return nil
 			},
 		},
