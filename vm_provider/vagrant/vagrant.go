@@ -14,8 +14,8 @@ type Vagrant struct {
 	Vms []model.Vm
 }
 
-func GenerateVagrantFile() {
-	tpl := template.Must(template.ParseFiles("template/Vagrantfile.tpl"))
+func GenerateVagrantModel() Vagrant {
+
 	member := Vagrant{
 		[]model.Vm{
 			model.Vm{
@@ -48,7 +48,7 @@ func GenerateVagrantFile() {
 				},
 			},
 			model.Vm{
-				"OITEC",
+				"vm_1",
 				"ubuntu/trusty64",
 				2048,
 				2,
@@ -80,10 +80,20 @@ func GenerateVagrantFile() {
 		},
 	}
 
+	return member
+}
+
+func GenerateVagrantFile() {
+
+	tpl := template.Must(template.ParseFiles("template/Vagrantfile.tpl"))
+
+	member := GenerateVagrantModel()
+
 	file, err := os.Create("vagrant_area/Vagrantfile")
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	if err := tpl.Execute(file, member); err != nil {
 		log.Fatal(err)
 	}
