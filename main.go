@@ -1,8 +1,6 @@
 package main
 
 import (
-	"./api"
-	"./job"
 	"./vm_provider/vagrant"
 	"fmt"
 	"github.com/joho/godotenv"
@@ -10,16 +8,6 @@ import (
 	"log"
 	"os"
 )
-
-func dis() {
-	d := job.NewDispatcher()
-	d.Start()
-	for i := 0; i < 100; i++ {
-		url := fmt.Sprintf("http://placehold.it/%dx%d", i, i)
-		d.Add(url)
-	}
-	d.Wait()
-}
 
 func scaffold(c *cli.Context) {
 	err := godotenv.Load()
@@ -37,8 +25,6 @@ func serve(c *cli.Context) {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-
-	api.Ready()
 }
 
 func main() {
