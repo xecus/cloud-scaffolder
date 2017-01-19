@@ -89,6 +89,8 @@ func GenerateVagrantFile() {
 
 	member := GenerateVagrantModel()
 
+	fmt.Println(member)
+
 	file, err := os.Create("vagrant_area/Vagrantfile")
 	if err != nil {
 		log.Fatal(err)
@@ -113,16 +115,32 @@ func PrepareVagrantControl() {
 
 func CtrlVagrant(c string, p []string) {
 	cmd := exec.Command(c, p...)
-	//cmd.Dir = "../VagrantWorkSuite"
+	cmd.Dir = "./vagrant_area"
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
 	}
-	cmd.Start()
-	scanner := bufio.NewScanner(stdout)
-	for scanner.Scan() {
-		s := scanner.Text()
-		fmt.Println("PID= " + fmt.Sprintf("%d", cmd.Process.Pid) + " RECV=[" + s + "]")
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		log.Fatal(err)
 	}
+	cmd.Start()
+
+	go func() {
+		scanner := bufio.NewScanner(stdout)
+		for scanner.Scan() {
+			s := scanner.Text()
+			fmt.Println("STDOUT PID= " + fmt.Sprintf("%d", cmd.Process.Pid) + " RECV=[" + s + "]")
+		}
+	}()
+
+	go func() {
+		scanner := bufio.NewScanner(stderr)
+		for scanner.Scan() {
+			s := scanner.Text()
+			fmt.Println("STDERR PID= " + fmt.Sprintf("%d", cmd.Process.Pid) + " RECV=[" + s + "]")
+		}
+	}()
+
 	cmd.Wait()
 }
