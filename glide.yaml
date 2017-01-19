@@ -1,5 +1,0 @@
-package: cloud-scaffolder
-import:
-- package: github.com/googollee/go-socket.io
-- package: github.com/joho/godotenv
-- package: github.com/urfave/cli
