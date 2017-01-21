@@ -16,7 +16,6 @@ type Vagrant struct {
 }
 
 func GenerateVagrantModel() Vagrant {
-
 	member := Vagrant{
 		[]Vm{
 			Vm{
@@ -117,10 +116,10 @@ func GenerateVagrantFile() {
 	}
 	filepath := path.Join(path.Dir(filename), "template/Vagrantfile.tpl")
 
-	log.Println("filepath=" + filepath)
+	//log.Println("filepath=" + filepath)
 	tpl := template.Must(template.ParseFiles(filepath))
 	member := GenerateVagrantModel()
-	fmt.Println(member)
+	//fmt.Println(member)
 
 	file, err := os.Create("vagrant_area/Vagrantfile")
 	if err != nil {
