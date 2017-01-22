@@ -69,38 +69,61 @@ func GenerateVagrantModel() Vagrant {
 					},
 				},
 			},
-			/*
-				Vm{
-					Hostname:   "vm_1",
-					Image:      "ubuntu/trusty64",
-					MemorySize: 2048,
-					NumOfCpus:  2,
-					Leader:     false,
-					NetworkInterfaces: []NetworkInterface{
-						NetworkInterface{
-							"private_network",
-							map[string]string{
-								"ip": "192.168.33.10",
+			Vm{
+				Hostname: "vm_1",
+				Image: VmImage{
+					Name:      "ubuntu",
+					ImageName: "ubuntu/trusty64",
+					Version:   "14.04",
+				},
+				MemorySize: 2048,
+				NumOfCpus:  2,
+				Leader:     false,
+				NetworkInterfaces: []NetworkInterface{
+					NetworkInterface{
+						Name: "vlan1",
+						Type: "private_network",
+						NetworkInterfaceOptions: []NetworkInterfaceOption{
+							NetworkInterfaceOption{
+								Key:   "ip",
+								Value: "192.168.33.10",
 							},
 						},
-						NetworkInterface{
-							"private_network",
-							map[string]string{
-								"ip":                 "192.168.34.0",
-								"virtualbox__intnet": "hogenet",
-								"type":               "dhcp",
+					},
+					NetworkInterface{
+						Name: "vlan2",
+						Type: "private_network",
+						NetworkInterfaceOptions: []NetworkInterfaceOption{
+							NetworkInterfaceOption{
+								Key:   "ip",
+								Value: "192.168.34.0",
+							},
+							NetworkInterfaceOption{
+								Key:   "virtualbox__intnet",
+								Value: "hogenet",
+							},
+							NetworkInterfaceOption{
+								Key:   "type",
+								Value: "dhcp",
 							},
 						},
-						NetworkInterface{
-							"forwarded_port",
-							map[string]string{
-								"host":  "3023",
-								"guest": "22",
+					},
+					NetworkInterface{
+						Name: "fp1",
+						Type: "forwarded_port",
+						NetworkInterfaceOptions: []NetworkInterfaceOption{
+							NetworkInterfaceOption{
+								Key:   "host",
+								Value: "3023",
+							},
+							NetworkInterfaceOption{
+								Key:   "guest",
+								Value: "22",
 							},
 						},
 					},
 				},
-			*/
+			},
 		},
 	}
 

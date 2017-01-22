@@ -13,53 +13,82 @@ import (
 
 // For Resource Management
 type ResourceControl struct {
-	Uuid string `gorm:"size:128"`
+	Uuid string `gorm:"size:128" json:"uuid"`
 }
 
 // For Router VM Provider
 type FirewallRule struct {
 	gorm.Model
+	ResourceControl
 	Name     string `gorm:"size:128;not null" json:"name"`
 	Protocol string `gorm:"size:128;not null" json:"protocol"`
-	Srcrange string `gorm:"size:128;not null" json:"src_range"`
-	Dstrange string `gorm:"size:128;not null" json:"dst_range"`
+	SrcRange string `gorm:"size:128;not null" json:"src_range"`
+	DstRange string `gorm:"size:128;not null" json:"dst_range"`
+}
+
+func (v *FirewallRule) BeforeCreate(scope *gorm.Scope) error {
+	scope.SetColumn("Uuid", uuid.NewV4().String())
+	return nil
 }
 
 // For VM Provider
 
 type VmImage struct {
 	gorm.Model
-	VmID      int    `gorm:"index"`
+	ResourceControl
+	VmID      int    `gorm:"index" json:"vm_id"`
 	Name      string `gorm:"size:128;not null" json:"name"`
 	ImageName string `gorm:"size:128;not null" json:"image_name"`
 	Version   string `gorm:"size:128;not null" json:"version"`
 }
 
+func (v *VmImage) BeforeCreate(scope *gorm.Scope) error {
+	scope.SetColumn("Uuid", uuid.NewV4().String())
+	return nil
+}
+
 type NetworkInterfaceOption struct {
 	gorm.Model
-	NetworkInterfaceID int    `gorm:"index"`
+	ResourceControl
+	NetworkInterfaceID int    `gorm:"index" json:"network_interface_id"`
 	Name               string `gorm:"size:128" json:"name"`
 	Key                string `gorm:"size:128;not null" json:"key"`
 	Value              string `gorm:"size:128;not null" json:"value"`
 }
 
+func (v *NetworkInterfaceOption) BeforeCreate(scope *gorm.Scope) error {
+	scope.SetColumn("Uuid", uuid.NewV4().String())
+	return nil
+}
+
 type NetworkInterface struct {
 	gorm.Model
-	VmID                    int    `gorm:"index"`
-	Name                    string `gorm:"size:128;not null" json:"name"`
-	Type                    string `gorm:"size:128;not null" json:"type"`
-	NetworkInterfaceOptions []NetworkInterfaceOption
+	ResourceControl
+	VmID                    int                      `gorm:"index" json:"vm_id"`
+	Name                    string                   `gorm:"size:128;not null" json:"name"`
+	Type                    string                   `gorm:"size:128;not null" json:"type"`
+	NetworkInterfaceOptions []NetworkInterfaceOption `json:"options"`
+}
+
+func (v *NetworkInterface) BeforeCreate(scope *gorm.Scope) error {
+	scope.SetColumn("Uuid", uuid.NewV4().String())
+	return nil
 }
 
 type Vm struct {
 	gorm.Model
 	ResourceControl
-	Hostname          string
-	Image             VmImage
-	MemorySize        int
-	NumOfCpus         int
-	Leader            bool
-	NetworkInterfaces []NetworkInterface
+	Hostname          string             `json:"hostname"`
+	Image             VmImage            `json:"image"`
+	MemorySize        int                `json:"memory_size"`
+	NumOfCpus         int                `json:"num_of_cpus"`
+	Leader            bool               `json:"leader"`
+	NetworkInterfaces []NetworkInterface `json:"network_interfaces"`
+}
+
+func (v *Vm) BeforeCreate(scope *gorm.Scope) error {
+	scope.SetColumn("Uuid", uuid.NewV4().String())
+	return nil
 }
 
 func (g NetworkInterface) ExpandNetworkInterfaceOptions() string {
@@ -81,7 +110,8 @@ func check_regexp(reg, str string) bool {
 	return regexp.MustCompile(reg).Match([]byte(str))
 }
 
-func (v Vm) DeleteAlltVm(i Impl) {
+func DeleteAlltVm(i Impl) {
+
 	a := []VmImage{}
 	i.DB.Find(&a)
 	for _, k := range a {
@@ -117,25 +147,16 @@ func (v Vm) DeleteAlltVm(i Impl) {
 }
 
 func (v Vm) CreateVm(i Impl) Vm {
-	u1 := uuid.NewV4()
-	fmt.Printf("UUIDv4: %s\n", u1)
 	if err := i.DB.Create(&v).Error; err != nil {
 		log.Fatalf("Error: %v", err)
 	}
 	return v
 }
 
-func GetVm(i Impl) Vm {
-	vm := Vm{}
-	if err := i.DB.Last(&vm).Error; err != nil {
-		log.Fatalf("Error: %v", err)
-	}
-	i.DB.Model(&vm).Related(&vm.Image)
-	i.DB.Model(&vm).Related(&vm.NetworkInterfaces)
-	for t, networkInterface := range vm.NetworkInterfaces {
-		i.DB.Model(&networkInterface).Related(&vm.NetworkInterfaces[t].NetworkInterfaceOptions)
-	}
-	return vm
+func GetAllVm(i *Impl) []Vm {
+	vms := []Vm{}
+	i.DB.Preload("Image").Preload("NetworkInterfaces").Preload("NetworkInterfaces.NetworkInterfaceOptions").Find(&vms)
+	return vms
 }
 
 func (v Vm) UpdateVm(i Impl) {
